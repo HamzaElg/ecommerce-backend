@@ -1,0 +1,13 @@
+// File: src/main/java/com/ecommerce/user/repository/UserRepository.java
+package com.ecommerce.user.repository;
+
+import com.ecommerce.user.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public interface UserRepository extends JpaRepository<User, UUID> {
+    Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
+}
