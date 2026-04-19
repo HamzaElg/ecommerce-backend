@@ -50,8 +50,18 @@ public class Inventory {
     @Version
     private Long version;
 
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
 
     @PreUpdate
     protected void onUpdate() {
