@@ -1,4 +1,4 @@
-# Electronics E-Commerce Backend
+# Electronics E-Commerce Project Backend
 
 A production-grade Spring Boot 3 backend for an electronics e-commerce platform.
 
