@@ -1,13 +1,14 @@
 // File: src/main/java/com/ecommerce/product/dto/ProductResponse.java
 package com.ecommerce.product.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public record ProductResponse(
+public record ProductResponse (
     UUID id,
     String name,
     String brand,
@@ -22,4 +23,4 @@ public record ProductResponse(
     Double averageRating,
     int reviewCount,
     Instant createdAt
-) {}
+) implements Serializable {}

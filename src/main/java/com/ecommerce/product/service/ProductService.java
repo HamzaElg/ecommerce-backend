@@ -47,7 +47,7 @@ public class ProductService {
      */
     @Cacheable(value = "product-search", key = "#root.methodName + #q + #categoryId + #brand + #minPrice + #maxPrice + #minRam + #page + #size")
     public Page<ProductResponse> searchProducts(
-            String q, String categoryId, String brand,
+            String q, UUID categoryId, String brand,
             BigDecimal minPrice, BigDecimal maxPrice, Integer minRam,
             int page, int size) {
 
