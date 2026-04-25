@@ -32,7 +32,7 @@ public class ProductController {
     @Operation(summary = "Search products with filters")
     public ResponseEntity<ApiResponse<java.util.List<ProductResponse>>> search(
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) UUID category,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,

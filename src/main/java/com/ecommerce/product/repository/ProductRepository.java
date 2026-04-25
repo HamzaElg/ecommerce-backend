@@ -31,14 +31,21 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
         SELECT p.* FROM products p
         JOIN categories c ON p.category_id = c.id
         WHERE p.is_active = true
-          AND (:query IS NULL OR p.search_vector @@ plainto_tsquery('english', :query)
-               OR p.name ILIKE '%' || :query || '%')
-          AND (:categoryId IS NULL OR p.category_id = :categoryId::uuid
-               OR c.parent_id = :categoryId::uuid)
+          AND (
+                :query IS NULL
+                OR (
+                    :query IS NOT NULL AND (
+                        p.search_vector @@ plainto_tsquery('english', :query)
+                        OR p.name ILIKE '%' || :query || '%'
+                    )
+                )
+            )
+          AND (:categoryId IS NULL OR p.category_id = :categoryId
+               OR c.parent_id = :categoryId)
           AND (:brand IS NULL OR LOWER(p.brand) = LOWER(:brand))
           AND (:minPrice IS NULL OR p.price >= :minPrice)
           AND (:maxPrice IS NULL OR p.price <= :maxPrice)
-          AND (:minRam IS NULL OR (p.specs->>'ram_gb')::integer >= :minRam)
+          AND (:minRam IS NULL OR CAST(p.specs->>'ram_gb' AS integer) >= :minRam)
         ORDER BY
           CASE WHEN :query IS NOT NULL
                THEN ts_rank(p.search_vector, plainto_tsquery('english', :query))
@@ -49,19 +56,26 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
         SELECT COUNT(*) FROM products p
         JOIN categories c ON p.category_id = c.id
         WHERE p.is_active = true
-          AND (:query IS NULL OR p.search_vector @@ plainto_tsquery('english', :query)
-               OR p.name ILIKE '%' || :query || '%')
-          AND (:categoryId IS NULL OR p.category_id = :categoryId::uuid
-               OR c.parent_id = :categoryId::uuid)
+            AND (
+                :query IS NULL
+                OR (
+                    :query IS NOT NULL AND (
+                        p.search_vector @@ plainto_tsquery('english', :query)
+                        OR p.name ILIKE '%' || :query || '%'
+                    )
+                )
+            )
+          AND (:categoryId IS NULL OR p.category_id = :categoryId
+               OR c.parent_id = :categoryId)
           AND (:brand IS NULL OR LOWER(p.brand) = LOWER(:brand))
           AND (:minPrice IS NULL OR p.price >= :minPrice)
           AND (:maxPrice IS NULL OR p.price <= :maxPrice)
-          AND (:minRam IS NULL OR (p.specs->>'ram_gb')::integer >= :minRam)
+          AND (:minRam IS NULL OR CAST(p.specs->>'ram_gb' AS integer) >= :minRam)
         """,
         nativeQuery = true)
     Page<Product> searchProducts(
         @Param("query") String query,
-        @Param("categoryId") String categoryId,
+        @Param("categoryId") UUID categoryId,
         @Param("brand") String brand,
         @Param("minPrice") BigDecimal minPrice,
         @Param("maxPrice") BigDecimal maxPrice,
