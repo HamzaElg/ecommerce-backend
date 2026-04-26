@@ -8,6 +8,7 @@ import com.ecommerce.product.dto.ProductRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,23 +38,29 @@ public class ProductImportService {
                     .setTrim(true)
                     .build();
 
-            Iterable<CSVRecord> records = format.parse(
-                    new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)
-            );
+            try (
+                    BOMInputStream bomInputStream = BOMInputStream.builder()
+                            .setInputStream(file.getInputStream())
+                            .get();
 
-            for (CSVRecord record : records) {
-                totalRows++;
-                int rowNumber = (int) record.getRecordNumber() + 1;
+                    InputStreamReader reader = new InputStreamReader(bomInputStream, StandardCharsets.UTF_8)
+            ) {
+                Iterable<CSVRecord> records = format.parse(reader);
 
-                try {
-                    ProductImportRow row = parseRow(record);
-                    ProductRequest request = toProductRequest(row);
+                for (CSVRecord record : records) {
+                    totalRows++;
+                    int rowNumber = (int) record.getRecordNumber() + 1;
 
-                    productService.createWithInitialStock(request, row.stockQty());
-                    created++;
+                    try {
+                        ProductImportRow row = parseRow(record);
+                        ProductRequest request = toProductRequest(row);
 
-                } catch (Exception e) {
-                    errors.add(new ProductImportError(rowNumber, e.getMessage()));
+                        productService.createWithInitialStock(request, row.stockQty());
+                        created++;
+
+                    } catch (Exception e) {
+                        errors.add(new ProductImportError(rowNumber, e.getMessage()));
+                    }
                 }
             }
 
