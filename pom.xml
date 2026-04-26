@@ -63,6 +63,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Apache commons csv -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.11.0</version>
+        </dependency>
+
         <!-- Flyway -->
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -114,6 +121,7 @@
             <artifactId>hypersistence-utils-hibernate-63</artifactId>
             <version>3.7.3</version>
         </dependency>
+
 
         <!-- OpenAPI / Swagger -->
         <dependency>

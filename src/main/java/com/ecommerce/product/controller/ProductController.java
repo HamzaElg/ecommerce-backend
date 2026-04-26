@@ -1,8 +1,8 @@
-// File: src/main/java/com/ecommerce/product/controller/ProductController.java
 package com.ecommerce.product.controller;
 
 import com.ecommerce.common.dto.ApiResponse;
 import com.ecommerce.common.dto.PaginationInfo;
+import com.ecommerce.product.dto.AdminProductCreateRequest;
 import com.ecommerce.product.dto.ProductRequest;
 import com.ecommerce.product.dto.ProductResponse;
 import com.ecommerce.product.service.ProductService;
@@ -42,6 +42,7 @@ public class ProductController {
 
         Page<ProductResponse> result = productService.searchProducts(
                 q, category, brand, minPrice, maxPrice, minRam, page, size);
+
         return ResponseEntity.ok(
                 ApiResponse.success(result.getContent(), PaginationInfo.from(result)));
     }
@@ -55,7 +56,8 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create product (Admin only)", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<ApiResponse<ProductResponse>> create(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ApiResponse<ProductResponse>> create(
+            @Valid @RequestBody AdminProductCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(productService.create(request)));
     }
@@ -64,7 +66,8 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update product (Admin only)", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<ApiResponse<ProductResponse>> update(
-            @PathVariable UUID id, @Valid @RequestBody ProductRequest request) {
+            @PathVariable UUID id,
+            @Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(ApiResponse.success(productService.update(id, request)));
     }
 
