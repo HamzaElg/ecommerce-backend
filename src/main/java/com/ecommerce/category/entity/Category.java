@@ -48,4 +48,16 @@ public class Category {
     protected void onUpdate() {
         updatedAt = Instant.now();
     }
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private boolean isActive = true;
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    public void activate() {
+        this.isActive = true;
+    }
 }
