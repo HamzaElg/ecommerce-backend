@@ -120,7 +120,7 @@ Client -> POST /auth/logout { refreshToken } -> session revoked
 
 ## API Overview
 
-All endpoints are under `/api/v1/` except health check.
+All endpoints are under `/api/v1/` except the health check.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
