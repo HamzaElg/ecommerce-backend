@@ -1,5 +1,6 @@
 package com.ecommerce.payment.service;
 
+import com.ecommerce.product.service.ProductCacheService;
 import com.ecommerce.common.exception.BusinessException;
 import com.ecommerce.common.exception.ResourceNotFoundException;
 import com.ecommerce.inventory.entity.Inventory;
@@ -27,6 +28,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final InventoryRepository inventoryRepository;
+    private final ProductCacheService productCacheService;
 
     @Transactional
     public PaymentResponse processPayment(UUID userId, String idempotencyKey, PaymentRequest request) {
@@ -101,6 +103,9 @@ public class PaymentService {
 
             inventory.confirmSale(item.getQuantity());
             inventoryRepository.save(inventory);
+
+            // Clear cached product search/detail because stockQty/reservedQty changed
+            productCacheService.evictProduct(item.getProduct().getId());
         }
 
         log.info("Payment SUCCESS → orderId={}", order.getId());
@@ -121,6 +126,9 @@ public class PaymentService {
 
             inventory.releaseReservation(item.getQuantity());
             inventoryRepository.save(inventory);
+
+            // Clear cached product search/detail because stockQty/reservedQty changed
+            productCacheService.evictProduct(item.getProduct().getId());
         }
 
         log.warn("Payment FAILED → orderId={}", order.getId());

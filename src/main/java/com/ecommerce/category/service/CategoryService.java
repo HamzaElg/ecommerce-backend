@@ -1,3 +1,4 @@
+// File: src/main/java/com/ecommerce/category/service/CategoryService.java
 package com.ecommerce.category.service;
 
 import com.ecommerce.category.dto.CategoryRequest;
@@ -6,6 +7,7 @@ import com.ecommerce.category.entity.Category;
 import com.ecommerce.category.repository.CategoryRepository;
 import com.ecommerce.common.exception.BusinessException;
 import com.ecommerce.common.exception.ResourceNotFoundException;
+import com.ecommerce.product.service.ProductCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductCacheService productCacheService;
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getActiveCategories() {
@@ -77,7 +80,9 @@ public class CategoryService {
                 .isActive(true)
                 .build();
 
-        return toResponse(categoryRepository.save(category));
+        CategoryResponse response = toResponse(categoryRepository.save(category));
+        productCacheService.evictAllProductCaches();
+        return response;
     }
 
     @Transactional
@@ -99,7 +104,9 @@ public class CategoryService {
         category.setSlug(request.slug());
         category.setParent(parent);
 
-        return toResponse(categoryRepository.save(category));
+        CategoryResponse response = toResponse(categoryRepository.save(category));
+        productCacheService.evictAllProductCaches();
+        return response;
     }
 
     @Transactional
@@ -109,6 +116,7 @@ public class CategoryService {
 
         category.deactivate();
         categoryRepository.save(category);
+        productCacheService.evictAllProductCaches();
     }
 
     @Transactional
@@ -117,7 +125,9 @@ public class CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id));
 
         category.activate();
-        return toResponse(categoryRepository.save(category));
+        CategoryResponse response = toResponse(categoryRepository.save(category));
+        productCacheService.evictAllProductCaches();
+        return response;
     }
 
     private void validateSlugUnique(String slug, UUID currentCategoryId) {

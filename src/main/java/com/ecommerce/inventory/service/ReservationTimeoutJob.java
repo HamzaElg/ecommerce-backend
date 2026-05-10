@@ -1,6 +1,7 @@
 // File: src/main/java/com/ecommerce/inventory/service/ReservationTimeoutJob.java
 package com.ecommerce.inventory.service;
 
+import com.ecommerce.product.service.ProductCacheService;
 import com.ecommerce.inventory.repository.InventoryRepository;
 import com.ecommerce.order.entity.Order;
 import com.ecommerce.order.entity.OrderItem;
@@ -23,6 +24,7 @@ public class ReservationTimeoutJob {
 
     private final OrderRepository orderRepository;
     private final InventoryRepository inventoryRepository;
+    private final ProductCacheService productCacheService;
 
     @Value("${app.reservation.timeout-minutes:30}")
     private int timeoutMinutes;
@@ -69,6 +71,9 @@ public class ReservationTimeoutJob {
                     .ifPresent(inventory -> {
                         inventory.releaseReservation(item.getQuantity());
                         inventoryRepository.save(inventory);
+
+                        // Clear cached product search/detail because reservedQty changed
+                        productCacheService.evictProduct(item.getProduct().getId());
 
                         log.info(
                                 "Released reservation: orderId={}, productId={}, quantity={}",

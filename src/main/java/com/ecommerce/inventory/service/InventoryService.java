@@ -1,3 +1,4 @@
+// File: src/main/java/com/ecommerce/inventory/service/InventoryService.java
 package com.ecommerce.inventory.service;
 
 import com.ecommerce.common.exception.BusinessException;
@@ -7,6 +8,8 @@ import com.ecommerce.inventory.dto.UpdateStockRequest;
 import com.ecommerce.inventory.entity.Inventory;
 import com.ecommerce.inventory.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +39,21 @@ public class InventoryService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "product-detail", key = "#productId"),
+            @CacheEvict(value = "product-search", allEntries = true)
+    })
     public InventoryResponse updateStock(UUID productId, UpdateStockRequest request) {
         Inventory inventory = inventoryRepository.findByProductIdWithLock(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory", productId));
+
+        if (request.stockQty() < 0) {
+            throw new BusinessException(
+                    "INVALID_STOCK_QUANTITY",
+                    "Stock quantity cannot be negative",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
 
         if (request.stockQty() < inventory.getReservedQty()) {
             throw new BusinessException(

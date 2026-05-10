@@ -1,8 +1,10 @@
+// File: src/main/java/com/ecommerce/review/service/ReviewService.java
 package com.ecommerce.review.service;
 
 import com.ecommerce.common.exception.BusinessException;
 import com.ecommerce.common.exception.ResourceNotFoundException;
 import com.ecommerce.product.repository.ProductRepository;
+import com.ecommerce.product.service.ProductCacheService;
 import com.ecommerce.review.dto.ReviewRequest;
 import com.ecommerce.review.dto.ReviewResponse;
 import com.ecommerce.review.dto.ReviewSummaryResponse;
@@ -26,6 +28,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final ProductCacheService productCacheService;
 
     @Transactional(readOnly = true)
     public Page<ReviewSummaryResponse> getProductReviews(UUID productId, int page, int size) {
@@ -33,7 +36,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product", productId));
 
         Page<Review> reviews = reviewRepository.findByProductIdWithUserOrderByCreatedAtDesc(
-                productId, PageRequest.of(page, size));
+                productId, PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100)));
 
         double avgRating = reviewRepository.findAverageRatingByProductId(productId).orElse(0.0);
         int totalReviews = reviewRepository.countByProductId(productId);
@@ -72,6 +75,8 @@ public class ReviewService {
                 .build();
 
         review = reviewRepository.save(review);
+
+        productCacheService.evictProduct(productId);
 
         return new ReviewResponse(
                 review.getId(),

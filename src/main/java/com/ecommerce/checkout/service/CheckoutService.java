@@ -1,6 +1,7 @@
 // File: src/main/java/com/ecommerce/checkout/service/CheckoutService.java
 package com.ecommerce.checkout.service;
 
+import com.ecommerce.product.service.ProductCacheService;
 import com.ecommerce.cart.entity.Cart;
 import com.ecommerce.cart.entity.CartItem;
 import com.ecommerce.cart.service.CartService;
@@ -26,6 +27,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+
 
 /**
  * Checkout service - orchestrates the checkout flow.
@@ -54,6 +57,7 @@ public class CheckoutService {
     private final OrderRepository orderRepository;
     private final InventoryRepository inventoryRepository;
     private final UserRepository userRepository;
+    private final ProductCacheService productCacheService;
 
     /**
      * Process checkout: validate cart, reserve stock, create order.
@@ -108,6 +112,9 @@ public class CheckoutService {
             // Reserve stock: incrementing reservedQty prevents other checkouts from taking this stock
             inventory.reserve(requested);
             inventoryRepository.save(inventory);
+
+            // Clear cached product search/detail because availableStock changed
+            productCacheService.evictProduct(cartItem.getProduct().getId());
 
             BigDecimal currentPrice = cartItem.getProduct().getPrice(); // Use LIVE price for billing
             BigDecimal subtotal = currentPrice.multiply(BigDecimal.valueOf(requested));
