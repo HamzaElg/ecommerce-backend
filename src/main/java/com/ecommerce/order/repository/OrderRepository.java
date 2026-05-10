@@ -19,11 +19,18 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Page<Order> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
-    Optional<Order> findByIdAndUserId(UUID id, UUID userId);
+    Page<Order> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    Page<Order> findByStatusOrderByCreatedAtDesc(Order.OrderStatus status, Pageable pageable);
 
     Optional<Order> findByIdempotencyKey(String idempotencyKey);
 
-    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items WHERE o.id = :id")
+    @Query("""
+        SELECT DISTINCT o FROM Order o
+        LEFT JOIN FETCH o.items i
+        LEFT JOIN FETCH i.product
+        WHERE o.id = :id
+    """)
     Optional<Order> findByIdWithItems(UUID id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
